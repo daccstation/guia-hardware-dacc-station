@@ -6,32 +6,6 @@ O material foi organizado de forma a permitir a consulta separada dos componente
 
 > Este repositório concentra-se na **reprodução física do hardware**. A configuração do sistema operacional e da plataforma de distribuição de jogos do Raspberry Pi não é detalhada neste guia.
 
----
-
-## Estrutura do repositório
-
-```text
-.
-├── console/
-│   ├── Lista de materiais.md
-│   ├── Instrucoes de montagem.md
-│   └── modelos_3d/
-│       ├── case_raspberry_base.stl
-│       └── case_raspberry_topo.stl
-│
-└── controle/
-    ├── Lista de materiais.md
-    ├── Instrucoes de montagem.md
-    ├── Instrucoes de configuracao.md
-    ├── modelos_3d/
-        ├──
-    └── nrf_module/
-        ├── boot.py
-        ├── code.py
-        ├── hid_gamepad.py
-        ├── lib/
-        ├── settings.toml
-        └── boot_out.txt
 ```
 
 ---

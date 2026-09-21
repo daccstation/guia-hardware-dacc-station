@@ -6,8 +6,6 @@ O material foi organizado de forma a permitir a consulta separada dos componente
 
 > Este repositório concentra-se na **reprodução física do hardware**. A configuração do sistema operacional e da plataforma de distribuição de jogos do Raspberry Pi não é detalhada neste guia.
 
-```
-
 ---
 
 ## Diagrama de arquitetura

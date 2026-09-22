@@ -1,34 +1,32 @@
 # hid_gamepad.py
-# Classe mínima para gamepad com:
-# - 16 botões declarados
-# - POV Hat / D-Pad
-# - eixo Z
-# - rotação Z
+# Classe minima para gamepad com:
+# - 17 botoes declarados
+# - D-Pad como botoes independentes
+# - 4 eixos HID: X, Y, Z, Rx
+# - X/Y centralizados; analogico fisico em Z/Rx
 
 import struct
 
 
 class Gamepad:
-    SOUTH_X = 1
-    NORTH_B = 2
-    WEST_A = 3
-    EAST_Y = 4
+    # Indices SDL / Godot esperados (b0, b1, ...)
+    SOUTH_X = 0
+    NORTH_B = 1
+    WEST_A = 2
+    EAST_Y = 3
 
-    SHARE = 5
-    OPTIONS = 6
-    HOME = 7
-    L1 = 8
-    R1 = 9
+    L1 = 4
+    R1 = 5
 
-    HAT_UP = 0
-    HAT_UP_RIGHT = 1
-    HAT_RIGHT = 2
-    HAT_DOWN_RIGHT = 3
-    HAT_DOWN = 4
-    HAT_DOWN_LEFT = 5
-    HAT_LEFT = 6
-    HAT_UP_LEFT = 7
-    HAT_CENTER = 8
+    SHARE = 8
+    OPTIONS = 9
+
+    DPAD_UP = 12
+    DPAD_DOWN = 13
+    DPAD_LEFT = 14
+    DPAD_RIGHT = 15
+
+    HOME = 16
 
     def __init__(self, devices):
         self._device = None
@@ -43,26 +41,31 @@ class Gamepad:
                 "Gamepad HID nao encontrado. Verifique o boot.py e reinicie a placa."
             )
 
-        self.send_state(0, self.HAT_CENTER, 0, 0)
+        self.send_state(0, 0, 0)
 
-    def send_state(self, button_mask, hat, z, rz):
-        button_mask = button_mask & 0xFFFF
-        hat = hat & 0x0F
+    def send_state(self, button_mask, right_x, right_y):
+        # 17 bits de botoes => 3 bytes.
+        button_mask = button_mask & 0x1FFFF
 
-        # Report:
-        # 2 bytes = botões 1..16
-        # 1 byte  = hat nos 4 bits baixos + padding nos 4 bits altos
-        # 1 byte  = eixo Z
-        # 1 byte  = eixo Rz
-        report = struct.pack(
-            "<HBbb",
-            button_mask,
-            hat,
-            self._clamp_axis(z),
-            self._clamp_axis(rz),
+        buttons = bytes((
+            button_mask & 0xFF,
+            (button_mask >> 8) & 0xFF,
+            (button_mask >> 16) & 0x01,
+        ))
+
+        # O host recebe quatro eixos nos usages X, Y, Z, Rx.
+        # No Windows/Chromium isso ocupa os indices 0, 1, 2 e 3.
+        # Left X/Left Y ficam no centro e o analogico fisico controla
+        # axis 2 (Right X) e axis 3 (Right Y).
+        axes = struct.pack(
+            "bbbb",
+            0,
+            0,
+            self._clamp_axis(right_x),
+            self._clamp_axis(right_y),
         )
 
-        self._device.send_report(report)
+        self._device.send_report(buttons + axes)
 
     def _clamp_axis(self, value):
         if value < -127:

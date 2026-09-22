@@ -1,8 +1,7 @@
 # code.py
 # Controle USB HID básico para nice!nano:
-# - 9 botões
-# - POV Hat / D-Pad
-# - 1 analógico direito com Z/Rz
+# - botoes principais + D-Pad como botoes
+# - 1 analógico direito em Z/Rx (axes 2/3 no Windows)
 # - centro automático
 # - limites reais manuais
 # - deadzone
@@ -21,10 +20,13 @@ from hid_gamepad import Gamepad
 # -------------------------------------------------------------------
 # PINOS DOS BOTÕES PRINCIPAIS
 # -------------------------------------------------------------------
+# OBS: pinos corrigidos em relação à primeira versão. O teste no
+# hardwaretester.com/gamepad mostrou que south estava fisicamente
+# ligado ao pino de west, e north ao de east. Trocado aqui.
 
-PIN_SOUTH_X = board.P0_09
+PIN_SOUTH_X = board.P1_11
 PIN_NORTH_B = board.P0_10
-PIN_WEST_A = board.P1_11
+PIN_WEST_A = board.P0_09
 PIN_EAST_Y = board.P1_13
 
 
@@ -65,7 +67,7 @@ DEADZONE = 42
 SMOOTHING = 0.60
 
 INVERT_X = False
-INVERT_Y = True
+INVERT_Y = False  # era True; estava invertendo frente/tras
 
 LOOP_DELAY = 0.01
 PRINT_INTERVAL = 0.2
@@ -138,34 +140,6 @@ def convert_axis(value, center, raw_min, raw_max, invert=False):
     return clamp(axis, -127, 127)
 
 
-def read_hat(up_pressed, down_pressed, left_pressed, right_pressed):
-    if up_pressed and right_pressed:
-        return Gamepad.HAT_UP_RIGHT
-
-    if right_pressed and down_pressed:
-        return Gamepad.HAT_DOWN_RIGHT
-
-    if down_pressed and left_pressed:
-        return Gamepad.HAT_DOWN_LEFT
-
-    if left_pressed and up_pressed:
-        return Gamepad.HAT_UP_LEFT
-
-    if up_pressed:
-        return Gamepad.HAT_UP
-
-    if right_pressed:
-        return Gamepad.HAT_RIGHT
-
-    if down_pressed:
-        return Gamepad.HAT_DOWN
-
-    if left_pressed:
-        return Gamepad.HAT_LEFT
-
-    return Gamepad.HAT_CENTER
-
-
 # -------------------------------------------------------------------
 # SETUP
 # -------------------------------------------------------------------
@@ -211,16 +185,18 @@ print("Button 1 = SOUTH / X")
 print("Button 2 = NORTH / B")
 print("Button 3 = WEST  / A")
 print("Button 4 = EAST  / Y")
-print("Button 5 = SHARE")
-print("Button 6 = OPTIONS")
-print("Button 7 = HOME")
-print("Button 8 = L1")
-print("Button 9 = R1")
-print("POV Hat = setas")
+print("Button 5 = L1")
+print("Button 6 = R1")
+print("b8  = SHARE")
+print("b9  = OPTIONS")
+print("b12 = DPAD UP")
+print("b13 = DPAD DOWN")
+print("b14 = DPAD LEFT")
+print("b15 = DPAD RIGHT")
+print("b16 = HOME")
 print()
 
 last_buttons = None
-last_hat = None
 last_x = None
 last_y = None
 last_print_time = 0
@@ -233,47 +209,49 @@ last_print_time = 0
 while True:
     button_mask = 0
 
-    # Botões principais
+    # Botões principais (face)
     if not south_x.value:
-        button_mask |= 1 << 0  # Button 1 = SOUTH / X
+        button_mask |= 1 << Gamepad.SOUTH_X  # b0 = SOUTH / X
 
     if not north_b.value:
-        button_mask |= 1 << 1  # Button 2 = NORTH / B
+        button_mask |= 1 << Gamepad.NORTH_B  # b1 = NORTH / B
 
     if not west_a.value:
-        button_mask |= 1 << 2  # Button 3 = WEST / A
+        button_mask |= 1 << Gamepad.WEST_A  # b2 = WEST / A
 
     if not east_y.value:
-        button_mask |= 1 << 3  # Button 4 = EAST / Y
+        button_mask |= 1 << Gamepad.EAST_Y  # b3 = EAST / Y
 
-    # Botões extras
-    if not share.value:
-        button_mask |= 1 << 4  # Button 5 = SHARE
-
-    if not options.value:
-        button_mask |= 1 << 5  # Button 6 = OPTIONS
-
-    if not home.value:
-        button_mask |= 1 << 6  # Button 7 = HOME
-
+    # Ombros
     if not l1.value:
-        button_mask |= 1 << 7  # Button 8 = L1
+        button_mask |= 1 << Gamepad.L1  # b4 = L1
 
     if not r1.value:
-        button_mask |= 1 << 8  # Button 9 = R1
+        button_mask |= 1 << Gamepad.R1  # b5 = R1
 
-    # Setas / POV Hat
-    up_pressed = not dpad_up.value
-    down_pressed = not dpad_down.value
-    left_pressed = not dpad_left.value
-    right_pressed = not dpad_right.value
+    # Menu
+    if not share.value:
+        button_mask |= 1 << Gamepad.SHARE  # b8 = SHARE
 
-    hat = read_hat(
-        up_pressed,
-        down_pressed,
-        left_pressed,
-        right_pressed
-    )
+    if not options.value:
+        button_mask |= 1 << Gamepad.OPTIONS  # b9 = OPTIONS
+
+    # Home / Guide
+    if not home.value:
+        button_mask |= 1 << Gamepad.HOME  # b16 = HOME
+
+    # D-Pad como botoes independentes
+    if not dpad_up.value:
+        button_mask |= 1 << Gamepad.DPAD_UP      # b12
+
+    if not dpad_down.value:
+        button_mask |= 1 << Gamepad.DPAD_DOWN    # b13
+
+    if not dpad_left.value:
+        button_mask |= 1 << Gamepad.DPAD_LEFT    # b14
+
+    if not dpad_right.value:
+        button_mask |= 1 << Gamepad.DPAD_RIGHT   # b15
 
     raw_x = axis_x.value
     raw_y = axis_y.value
@@ -299,14 +277,12 @@ while True:
 
     if (
         button_mask != last_buttons
-        or hat != last_hat
         or x != last_x
         or y != last_y
     ):
-        gamepad.send_state(button_mask, hat, x, y)
+        gamepad.send_state(button_mask, x, y)
 
         last_buttons = button_mask
-        last_hat = hat
         last_x = x
         last_y = y
 
@@ -320,10 +296,9 @@ while True:
             "RAW_Y:", raw_y,
             "| FILT_X:", int(filtered_x),
             "FILT_Y:", int(filtered_y),
-            "| HID_Z:", x,
-            "HID_RZ:", y,
-            "| Buttons:", bin(button_mask),
-            "| Hat:", hat
+            "| RIGHT_X(Z):", x,
+            "RIGHT_Y(Rx):", y,
+            "| Buttons:", bin(button_mask)
         )
 
     time.sleep(LOOP_DELAY)

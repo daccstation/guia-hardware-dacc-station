@@ -2,9 +2,44 @@
 
 Este repositório reúne os arquivos e a documentação necessários para a reprodução do hardware do **DACC Station**, incluindo o console baseado em Raspberry Pi e o protótipo funcional do controle desenvolvido para o projeto.
 
-O material foi organizado de forma a permitir a consulta separada dos componentes, arquivos de fabricação, instruções de montagem e configuração eletrônica.
+O material foi organizado de forma a permitir a consulta separada dos componentes, arquivos de fabricação, instruções de montagem, firmware do controle e camada de compatibilidade Linux necessária para utilizar o gamepad no sistema do console.
 
-> Este repositório concentra-se na **reprodução física do hardware**. A configuração do sistema operacional e da plataforma de distribuição de jogos do Raspberry Pi não é detalhada neste guia.
+> Este repositório concentra-se na **reprodução do hardware e da integração de entrada do controle**. A configuração completa do NixOS/ToofOS e da plataforma de distribuição de jogos do Raspberry Pi não é detalhada neste guia.
+
+---
+
+## Estrutura do repositório
+
+```text
+.
+├── console/
+│   ├── Lista de materiais.md
+│   ├── Instrucoes de montagem.md
+│   └── modelos_3d/
+│       ├── case_raspberry_base.stl
+│       ├── case_raspberry_topo.stl
+│       └── adaptador_ventoinha_30_p_40.stl
+│
+└── controle/
+    ├── Lista de materiais.md
+    ├── Instrucoes de montagem.md
+    ├── Instrucoes de configuracao.md
+    ├── modelos_3d/
+    ├── nrf_module/
+    │   ├── boot.py
+    │   ├── code.py
+    │   ├── hid_gamepad.py
+    │   ├── lib/
+    │   ├── settings.toml
+    │   └── boot_out.txt
+    └── linux/
+        └── dacc-gamepad/
+            ├── README.md
+            ├── dacc_gamepad.py
+            ├── 71-dacc-gamepad.rules
+            ├── dacc-gamepad.service
+            └── dacc-gamepad.conf
+```
 
 ---
 
@@ -70,19 +105,6 @@ As instruções completas estão disponíveis em:
 O controle corresponde ao protótipo funcional desenvolvido para o DACC Station, utilizando uma placa **Nice!Nano baseada no nRF52840**, joystick analógico, 13 botões de pressão, placa com fendas e uma pequena placa de ensaio utilizada como barramento de GND.
 
 Na versão documentada, a comunicação é realizada por **USB HID cabeado**. Os botões são fixados em uma placa com fendas, com jumpers soldados aos seus terminais, enquanto uma placa de ensaio estreita de **25 × 2 pontos** concentra as conexões de GND dos botões e do joystick. A placa com fendas é instalada na carcaça por encaixe **snap-fit**.
-
-O controle do DACC Station utiliza um nice!nano (nRF52840) com firmware
-CircuitPython responsável pela leitura dos botões e joystick e pela
-comunicação USB HID.
-
-Como o dispositivo utiliza um layout HID próprio, o sistema do console
-possui uma camada de compatibilidade baseada em Linux `evdev` e `uinput`.
-Essa camada converte os eventos físicos em um gamepad virtual padronizado,
-denominado `DACC Station Controller`.
-
-Os arquivos e instruções estão disponíveis em:
-
-[`controle/linux/dacc-gamepad/`](controle/linux/dacc-gamepad/)
 
 ## Arquivos de fabricação
 
@@ -181,15 +203,52 @@ Os principais arquivos são:
 | `settings.toml` | Arquivo de configuração do CircuitPython |
 | `boot_out.txt` | Registro da versão do CircuitPython utilizada |
 
-Na versão atualmente documentada, o dispositivo é configurado como um **USB HID Gamepad** identificado como:
+Na versão atualmente documentada, o firmware apresenta a Nice!Nano como um **USB HID Gamepad** com 17 posições lógicas de botão e quatro eixos HID (`X`, `Y`, `Z` e `Rx`). Os 13 botões físicos são distribuídos nessas posições; o D-Pad utiliza `b12` a `b15` como botões independentes e o joystick físico é transmitido em `Z/Rx`.
+
+O nome de interface configurado pelo firmware é:
 
 ```text
 DACC Station Joystick
 ```
 
+Dependendo da camada do Linux utilizada para inspecionar o HID bruto, o dispositivo também pode aparecer pelo nome USB da placa, como `Nice Keyboards nice!nano`.
+
 ---
 
-## 2.3. Montagem do controle
+## 2.3. Camada de compatibilidade Linux
+
+O HID físico transmite corretamente todos os estados, porém seu layout bruto não corresponde diretamente à semântica esperada por aplicações como SDL/Godot. Para o DACC Station foi adotada uma camada de compatibilidade no próprio Linux, baseada em `evdev` e `uinput`.
+
+```text
+nice!nano / HID físico
+        ↓
+evdev
+        ↓
+dacc_gamepad.py
+        ↓
+uinput
+        ↓
+DACC Station Controller
+        ↓
+Steam / Godot / jogos
+```
+
+O mapper converte, entre outros pontos:
+
+- o D-Pad de `b12..b15` para `ABS_HAT0X/ABS_HAT0Y`;
+- os botões de face para `BTN_SOUTH/EAST/WEST/NORTH`;
+- `ABS_Z/ABS_RX` do joystick físico para `ABS_RX/ABS_RY` do gamepad virtual;
+- os botões X e Y físicos para a disposição correta validada no controle virtual.
+
+A execução manual do mapper foi validada em **Fedora Linux**, com funcionamento correto no `evtest`, na Steam em modo Big Picture e no Godot. A configuração automática por `udev`/`systemd` está incluída no repositório para validação, enquanto a integração definitiva com o NixOS do DACC Station permanece pendente de teste no Raspberry Pi.
+
+Arquivos e instruções:
+
+- [Camada Linux do controle](controle/linux/dacc-gamepad/README.md)
+
+---
+
+## 2.4. Montagem do controle
 
 Depois de configurar e testar a Nice!Nano:
 
@@ -213,29 +272,42 @@ As conexões e a pinagem completa estão documentadas em:
 
 # 3. Teste do controle
 
-Antes da montagem definitiva, recomenda-se testar a Nice!Nano conectada ao computador ou Raspberry Pi.
+Antes da montagem definitiva, recomenda-se testar primeiro o **HID físico** e depois o **controle virtual Linux**.
 
-Em sistemas Linux, o controle pode ser verificado com `jstest`:
+### 3.1. HID físico
 
-```bash
-sudo apt install joystick
-jstest /dev/input/js0
-```
-
-Também é possível utilizar `evtest`:
+No Fedora:
 
 ```bash
-sudo apt install evtest
+sudo dnf install evtest
 sudo evtest
 ```
 
-Durante o teste, verifique:
+No Debian/Raspberry Pi OS, o pacote equivalente pode ser instalado com `apt`.
 
-- reconhecimento do dispositivo;
-- botões principais;
-- D-Pad;
+O HID atual deve expor 17 botões lógicos e os eixos `ABS_X`, `ABS_Y`, `ABS_Z` e `ABS_RX`. O D-Pad ainda aparece nessa etapa como quatro botões independentes.
+
+### 3.2. Controle virtual
+
+Com a camada `controle/linux/dacc-gamepad/` em execução, selecione no `evtest`:
+
+```text
+DACC Station Controller
+```
+
+A saída virtual deve apresentar botões semânticos (`BTN_SOUTH`, `BTN_EAST`, `BTN_WEST`, `BTN_NORTH`, etc.), D-Pad em `ABS_HAT0X/ABS_HAT0Y` e o joystick em `ABS_RX/ABS_RY`.
+
+Durante a validação em Fedora, essa saída funcionou corretamente na Steam em modo Big Picture e no Godot.
+
+Durante os testes, verifique:
+
+- reconhecimento do dispositivo físico;
+- criação do dispositivo virtual;
+- A, B, X e Y na orientação correta;
+- L1 e R1;
+- Back, Start e Home;
+- quatro direções do D-Pad;
 - joystick analógico;
-- leitura dos eixos;
 - estabilidade do funcionamento.
 
 ---
@@ -256,7 +328,8 @@ Para reproduzir o conjunto completo, recomenda-se seguir esta ordem:
 2. preparar a Nice!Nano conforme as [instruções de configuração](controle/Instrucoes%20de%20configuracao.md);
 3. imprimir a carcaça do controle;
 4. seguir as [instruções de montagem](controle/Instrucoes%20de%20montagem.md);
-5. testar todas as entradas antes do fechamento definitivo.
+5. testar todas as entradas antes do fechamento definitivo;
+6. em Linux, configurar e validar a [camada de compatibilidade do gamepad](controle/linux/dacc-gamepad/README.md).
 
 ---
 
@@ -269,6 +342,7 @@ Para reproduzir o conjunto completo, recomenda-se seguir esta ordem:
 | [Lista de materiais do controle](controle/Lista%20de%20materiais.md) | Componentes necessários para o controle |
 | [Configuração da Nice!Nano](controle/Instrucoes%20de%20configuracao.md) | Instalação do CircuitPython e do módulo do controle |
 | [Montagem do controle](controle/Instrucoes%20de%20montagem.md) | Posicionamento, pinagem, conexões e montagem física |
+| [Compatibilidade Linux do controle](controle/linux/dacc-gamepad/README.md) | Mapper `evdev/uinput`, mapeamento, `udev`, `systemd` e testes no Fedora |
 
 ---
 
@@ -282,6 +356,7 @@ Para reproduzir o conjunto completo, recomenda-se seguir esta ordem:
 - Não mantenha `RST` e `GND` conectados permanentemente.
 - Evite aplicar força excessiva nos parafusos das peças impressas em 3D.
 - Antes do fechamento de qualquer carcaça, confirme que fios e componentes não estão sendo pressionados ou deslocados.
+- A camada `uinput` foi validada manualmente em Fedora com Steam Big Picture e Godot; a integração automática e o NixOS devem ser testados no ambiente final antes da publicação de uma versão fechada do sistema.
 
 ---
 
@@ -289,4 +364,4 @@ Para reproduzir o conjunto completo, recomenda-se seguir esta ordem:
 
 O DACC Station é um projeto voltado ao desenvolvimento de uma plataforma física para execução e disponibilização de jogos produzidos no contexto do curso de Ciência da Computação da Universidade Federal de Rondônia (UNIR).
 
-Este repositório documenta os elementos de hardware necessários para facilitar a reprodução do console e do controle desenvolvidos no projeto.
+Este repositório documenta os elementos de hardware, firmware e integração de entrada necessários para facilitar a reprodução do console e do controle desenvolvidos no projeto.

@@ -239,10 +239,13 @@ A pasta `lib/` deve ser copiada juntamente com os scripts, pois contém bibliote
 
 Na versão atualmente armazenada no repositório, o descritor HID define:
 
-- até 13 botões HID;
-- POV Hat utilizado pelo D-Pad;
-- dois eixos analógicos;
-- identificação do dispositivo como `DACC Station Joystick`.
+- **17 posições lógicas de botão** (`b0` a `b16`), das quais 13 possuem entradas físicas;
+- D-Pad transmitido como quatro botões independentes (`b12` a `b15`);
+- quatro eixos HID assinados: `X`, `Y`, `Z` e `Rx`;
+- joystick físico transmitido em `Z/Rx`, mantendo `X/Y` centralizados;
+- nome de interface `DACC Station Joystick`.
+
+Essa organização foi adotada para manter um relatório HID simples e permitir que a camada Linux `evdev/uinput` realize a normalização semântica para o gamepad virtual do DACC Station.
 
 ### `code.py`
 
@@ -259,7 +262,7 @@ Contém a lógica principal de execução do controle, incluindo:
 
 ### `hid_gamepad.py`
 
-Implementa a estrutura utilizada para montar e enviar os relatórios HID do gamepad.
+Implementa a estrutura utilizada para montar e enviar os relatórios HID do gamepad. O relatório atual possui **7 bytes**: três bytes para as 17 posições de botão e quatro bytes assinados para `X`, `Y`, `Z` e `Rx`.
 
 ### `lib/`
 
@@ -309,50 +312,69 @@ Antes de instalar definitivamente a Nice!Nano na carcaça do controle, realize u
 
 A versão atual do módulo do repositório configura a Nice!Nano como um **USB HID Gamepad**.
 
-O dispositivo é identificado como:
+O firmware define o nome de interface:
 
 ```text
 DACC Station Joystick
 ```
 
-### 10.1. Teste no Linux ou Raspberry Pi
+No Linux, ferramentas de baixo nível podem apresentar o produto USB pelo nome da própria placa (`Nice Keyboards nice!nano`). Para identificar de forma robusta o protótipo validado, utilize também:
 
-Uma opção é utilizar `jstest`.
-
-Instale o pacote:
-
-```bash
-sudo apt install joystick
+```text
+VID: 239a
+PID: 80b4
 ```
 
-Verifique os dispositivos disponíveis:
+### 10.1. Teste do HID físico no Linux
+
+Instale `evtest`. Em Fedora:
 
 ```bash
-ls /dev/input/js*
+sudo dnf install evtest
 ```
 
-Em seguida:
-
-```bash
-jstest /dev/input/js0
-```
-
-Também é possível utilizar `evtest`:
+Em Debian/Raspberry Pi OS:
 
 ```bash
 sudo apt install evtest
+```
+
+Execute:
+
+```bash
 sudo evtest
 ```
 
-Selecione o dispositivo correspondente ao `DACC Station Joystick`.
+No protótipo validado, o HID físico apresenta:
 
-Durante o teste, verifique:
+- 17 eventos de botão lógicos;
+- `ABS_X`, `ABS_Y`, `ABS_Z` e `ABS_RX` na faixa `-127..127`;
+- D-Pad como quatro botões independentes (`b12..b15`);
+- joystick físico em `ABS_Z/ABS_RX`.
 
-- botões principais;
-- D-Pad;
-- joystick analógico;
-- reconhecimento dos eixos;
-- estabilidade do dispositivo.
+O teste bruto confirma que o firmware está transmitindo as entradas. Ele **não** representa ainda o layout final utilizado pelos jogos do DACC Station.
+
+### 10.2. Teste do gamepad normalizado no Linux
+
+Para o uso no console, utilize a camada de compatibilidade localizada em:
+
+```text
+controle/linux/dacc-gamepad/
+```
+
+Ela lê o HID físico com `evdev` e cria, via `uinput`, o dispositivo virtual:
+
+```text
+DACC Station Controller
+```
+
+A camada converte o D-Pad para `ABS_HAT0X/ABS_HAT0Y`, corrige a semântica de A/B/X/Y e apresenta o joystick em `ABS_RX/ABS_RY`.
+
+A execução manual dessa camada foi validada em **Fedora Linux**, incluindo testes bem-sucedidos no `evtest`, na Steam em modo Big Picture e no Godot.
+
+Consulte o guia completo:
+
+- [Camada Linux do DACC Station Controller](linux/dacc-gamepad/README.md)
 
 ---
 

@@ -78,21 +78,21 @@ Os botões utilizam entradas com `pull-up` interno. Portanto, cada botão é con
 
 Conecte os jumpers soldados aos botões aos seguintes pinos:
 
-| Função | Pino da Nice!Nano |
-|---|---|
-| SOUTH / X | P0.09 |
-| NORTH / B | P0.10 |
-| WEST / A | P1.11 |
-| EAST / Y | P1.13 |
-| SHARE | P0.06 |
-| OPTIONS | P0.08 |
-| HOME | P0.17 |
-| L1 | P0.20 |
-| R1 | P0.22 |
-| D-Pad Cima | P1.00 |
-| D-Pad Baixo | P0.11 |
-| D-Pad Esquerda | P1.04 |
-| D-Pad Direita | P1.06 |
+| Função | Pino da Nice!Nano | Índice HID atual |
+|---|---|---|
+| A | P1.11 | `b0` |
+| B | P0.10 | `b1` |
+| Y | P0.09 | `b2` |
+| X | P1.13 | `b3` |
+| L1 | P0.20 | `b4` |
+| R1 | P0.22 | `b5` |
+| SHARE / BACK | P0.06 | `b8` |
+| OPTIONS / START | P0.08 | `b9` |
+| D-Pad Cima | P1.00 | `b12` |
+| D-Pad Baixo | P0.11 | `b13` |
+| D-Pad Esquerda | P1.04 | `b14` |
+| D-Pad Direita | P1.06 | `b15` |
+| HOME / GUIDE | P0.17 | `b16` |
 
 O princípio de ligação é:
 
@@ -138,7 +138,7 @@ Antes de encaixar definitivamente a placa com fendas:
 1. conecte a Nice!Nano ao Raspberry Pi utilizando o cabo USB;
 2. confirme se o dispositivo HID é reconhecido;
 3. teste individualmente os 13 botões;
-4. teste os eixos X e Y do joystick;
+4. teste os dois eixos do joystick; no HID bruto eles são enviados como `Z` e `Rx`;
 5. verifique se não há botão permanentemente acionado;
 6. movimente cuidadosamente os fios para identificar possíveis contatos intermitentes.
 

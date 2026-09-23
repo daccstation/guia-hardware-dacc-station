@@ -1,0 +1,38 @@
+# ============================================================
+# DACC Station Controller
+# ============================================================
+
+# ------------------------------------------------------------
+# Controle físico:
+#
+# nice!nano USB HID
+# VID 239a
+# PID 80b4
+#
+# Ele é consumido exclusivamente pelo serviço dacc-gamepad.
+# Jogos e aplicações do usuário não devem utilizá-lo
+# diretamente.
+# ------------------------------------------------------------
+
+SUBSYSTEM=="input", \
+KERNEL=="event*", \
+ATTRS{idVendor}=="239a", \
+ATTRS{idProduct}=="80b4", \
+MODE:="0600", \
+TAG-="uaccess", \
+ENV{ID_INPUT_JOYSTICK}=""
+
+
+# ------------------------------------------------------------
+# Controle virtual criado por uinput.
+#
+# Este é o dispositivo que Steam, SDL, Godot e jogos devem
+# utilizar.
+# ------------------------------------------------------------
+
+SUBSYSTEM=="input", \
+KERNEL=="event*", \
+ATTRS{name}=="DACC Station Controller", \
+MODE:="0660", \
+ENV{ID_INPUT_JOYSTICK}="1", \
+TAG+="uaccess"

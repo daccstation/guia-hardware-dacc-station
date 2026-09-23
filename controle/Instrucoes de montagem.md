@@ -78,23 +78,21 @@ Os botões utilizam entradas com `pull-up` interno. Portanto, cada botão é con
 
 Conecte os jumpers soldados aos botões aos seguintes pinos:
 
-| Função final | Constante usada em `code.py` | Pino da Nice!Nano | Índice HID atual |
-|---|---|---|---|
-| A | `PIN_SOUTH_X` | P1.11 | `b0` |
-| B | `PIN_NORTH_B` | P0.10 | `b1` |
-| Y | `PIN_WEST_A` | P0.09 | `b2` |
-| X | `PIN_EAST_Y` | P1.13 | `b3` |
-| L1 | `PIN_L1` | P0.20 | `b4` |
-| R1 | `PIN_R1` | P0.22 | `b5` |
-| SHARE / BACK | `PIN_SHARE` | P0.06 | `b8` |
-| OPTIONS / START | `PIN_OPTIONS` | P0.08 | `b9` |
-| D-Pad Cima | `PIN_DPAD_UP` | P1.00 | `b12` |
-| D-Pad Baixo | `PIN_DPAD_DOWN` | P0.11 | `b13` |
-| D-Pad Esquerda | `PIN_DPAD_LEFT` | P1.04 | `b14` |
-| D-Pad Direita | `PIN_DPAD_RIGHT` | P1.06 | `b15` |
-| HOME / GUIDE | `PIN_HOME` | P0.17 | `b16` |
-
-> Os nomes `SOUTH_X`, `NORTH_B`, `WEST_A` e `EAST_Y` são mantidos no firmware atual por histórico dos testes do HID. A coluna **Função final** corresponde ao resultado normalizado e validado pela camada Linux `uinput`.
+| Função | Pino da Nice!Nano | Índice HID atual |
+|---|---|---|
+| A | P1.11 | `b0` |
+| B | P0.10 | `b1` |
+| Y | P0.09 | `b2` |
+| X | P1.13 | `b3` |
+| L1 | P0.20 | `b4` |
+| R1 | P0.22 | `b5` |
+| SHARE / BACK | P0.06 | `b8` |
+| OPTIONS / START | P0.08 | `b9` |
+| D-Pad Cima | P1.00 | `b12` |
+| D-Pad Baixo | P0.11 | `b13` |
+| D-Pad Esquerda | P1.04 | `b14` |
+| D-Pad Direita | P1.06 | `b15` |
+| HOME / GUIDE | P0.17 | `b16` |
 
 O princípio de ligação é:
 
@@ -130,8 +128,6 @@ Conecte o módulo joystick de acordo com a tabela:
 | Eixo Y / VRy | AIN5 / P0.29 |
 
 Após realizar as conexões, movimente o joystick nos dois eixos e verifique pelo software de teste se os valores são reconhecidos corretamente.
-
-No firmware atual, o joystick utiliza calibração automática de centro, `DEADZONE = 42`, `SMOOTHING = 0.60`, limites manuais `0..51200` e não inverte nenhum dos eixos (`INVERT_X = False`, `INVERT_Y = False`). Durante a inicialização, mantenha o joystick parado no centro até a mensagem de calibração concluída.
 
 ---
 

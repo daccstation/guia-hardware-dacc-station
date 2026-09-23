@@ -1,13 +1,5 @@
 #!/usr/bin/env python3
 
-# Mapper Linux validado com o firmware CircuitPython deste repositório:
-# - boot.py: 17 botões + X/Y/Z/Rx
-# - hid_gamepad.py: joystick físico em Z/Rx
-# - code.py: D-Pad em b12..b15 e Home em b16
-#
-# A semântica final A/B/X/Y abaixo foi validada no Steam Big Picture
-# e no Godot; em especial, b2 -> Y e b3 -> X.
-
 import time
 
 from evdev import (

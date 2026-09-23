@@ -114,11 +114,6 @@ Os modelos utilizados para fabricação da carcaça do controle estão disponív
 controle/modelos_3d/
 ```
 
-Arquivos fornecidos:
-
-- `.stl`
-- `.stl`
-
 A carcaça utilizada no protótipo foi produzida em PLA, com preenchimento de 100%.
 
 ## Principais componentes
@@ -203,9 +198,7 @@ Os principais arquivos são:
 | `settings.toml` | Arquivo de configuração do CircuitPython |
 | `boot_out.txt` | Registro da versão do CircuitPython utilizada |
 
-Na versão atualmente documentada, o firmware apresenta a Nice!Nano como um **USB HID Gamepad** com 17 posições lógicas de botão e quatro eixos HID (`X`, `Y`, `Z` e `Rx`). Os 13 botões físicos são distribuídos nessas posições; o D-Pad utiliza `b12` a `b15` como botões independentes e o joystick físico é transmitido em `Z/Rx`, enquanto `X/Y` permanecem centralizados. O `code.py` utilizado no protótipo realiza calibração automática do centro, usa `DEADZONE = 42`, `SMOOTHING = 0.60`, limites `0..51200` e mantém `INVERT_X = False` e `INVERT_Y = False`.
-
-Os nomes internos dos botões de face no firmware (`SOUTH_X`, `NORTH_B`, `WEST_A`, `EAST_Y`) são mantidos conforme os arquivos efetivamente utilizados. A camada Linux é responsável por apresentar a semântica final validada: `b0=A`, `b1=B`, `b2=Y` e `b3=X`.
+Na versão atualmente documentada, o firmware apresenta a Nice!Nano como um **USB HID Gamepad** com 17 posições lógicas de botão e quatro eixos HID (`X`, `Y`, `Z` e `Rx`). Os 13 botões físicos são distribuídos nessas posições; o D-Pad utiliza `b12` a `b15` como botões independentes e o joystick físico é transmitido em `Z/Rx`.
 
 O nome de interface configurado pelo firmware é:
 
@@ -242,7 +235,7 @@ O mapper converte, entre outros pontos:
 - `ABS_Z/ABS_RX` do joystick físico para `ABS_RX/ABS_RY` do gamepad virtual;
 - os botões X e Y físicos para a disposição correta validada no controle virtual.
 
-A execução manual do mapper foi validada em **Fedora Linux**, com funcionamento correto no `evtest`, na Steam em modo Big Picture e no Godot. A configuração automática por `udev`/`systemd` está incluída no repositório para validação, enquanto a integração definitiva com o NixOS do DACC Station permanece pendente de teste no Raspberry Pi.
+A execução manual do mapper foi validada em **Fedora Linux**, com funcionamento correto no `evtest`, na Steam em modo Big Picture e no Godot. A configuração automática por `udev`/`systemd` está incluída no repositório para validação.
 
 Arquivos e instruções:
 
@@ -358,7 +351,6 @@ Para reproduzir o conjunto completo, recomenda-se seguir esta ordem:
 - Não mantenha `RST` e `GND` conectados permanentemente.
 - Evite aplicar força excessiva nos parafusos das peças impressas em 3D.
 - Antes do fechamento de qualquer carcaça, confirme que fios e componentes não estão sendo pressionados ou deslocados.
-- A camada `uinput` foi validada manualmente em Fedora com Steam Big Picture e Godot; a integração automática e o NixOS devem ser testados no ambiente final antes da publicação de uma versão fechada do sistema.
 
 ---
 

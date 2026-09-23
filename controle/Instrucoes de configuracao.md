@@ -247,28 +247,22 @@ Na versão atualmente armazenada no repositório, o descritor HID define:
 
 Essa organização foi adotada para manter um relatório HID simples e permitir que a camada Linux `evdev/uinput` realize a normalização semântica para o gamepad virtual do DACC Station.
 
-Os índices utilizados atualmente são `b0`, `b1`, `b2`, `b3`, `b4`, `b5`, `b8`, `b9`, `b12`, `b13`, `b14`, `b15` e `b16`. Os índices `b6`, `b7`, `b10` e `b11` são declarados no descritor, mas não possuem entrada física.
-
 ### `code.py`
 
 Contém a lógica principal de execução do controle, incluindo:
 
-- leitura dos botões e do D-Pad com `Pull.UP`;
-- leitura do joystick em `AIN0/P0_02` e `AIN5/P0_29`;
-- calibração automática do centro do joystick a partir de 100 amostras;
-- `DEADZONE = 42`;
-- suavização exponencial com `SMOOTHING = 0.60`;
-- limites manuais `0..51200` para os dois eixos;
-- `INVERT_X = False` e `INVERT_Y = False`;
-- conversão dos valores para `-127..127`;
-- envio do joystick físico como os eixos `Z/Rx`;
-- impressão periódica dos valores brutos, filtrados e enviados para facilitar calibração e diagnóstico.
-
-Os nomes internos dos quatro botões de face são `SOUTH_X`, `NORTH_B`, `WEST_A` e `EAST_Y`. Eles representam a organização usada pelo firmware bruto; a semântica final A/B/X/Y é normalizada pela camada Linux.
+- leitura dos botões;
+- leitura do D-Pad;
+- leitura do joystick analógico;
+- calibração automática do centro do joystick;
+- aplicação de deadzone;
+- suavização dos valores analógicos;
+- conversão dos valores lidos;
+- envio dos estados para o dispositivo HID.
 
 ### `hid_gamepad.py`
 
-Implementa a estrutura utilizada para montar e enviar os relatórios HID do gamepad. O relatório atual possui **7 bytes**: três bytes para os 17 bits de botão e quatro bytes assinados para `X`, `Y`, `Z` e `Rx`. A função `send_state()` recebe apenas o estado dos botões e os dois valores do joystick físico; `X/Y` são preenchidos com zero e o joystick é colocado em `Z/Rx`.
+Implementa a estrutura utilizada para montar e enviar os relatórios HID do gamepad. O relatório atual possui **7 bytes**: três bytes para as 17 posições de botão e quatro bytes assinados para `X`, `Y`, `Z` e `Rx`.
 
 ### `lib/`
 

@@ -203,7 +203,9 @@ Os principais arquivos são:
 | `settings.toml` | Arquivo de configuração do CircuitPython |
 | `boot_out.txt` | Registro da versão do CircuitPython utilizada |
 
-Na versão atualmente documentada, o firmware apresenta a Nice!Nano como um **USB HID Gamepad** com 17 posições lógicas de botão e quatro eixos HID (`X`, `Y`, `Z` e `Rx`). Os 13 botões físicos são distribuídos nessas posições; o D-Pad utiliza `b12` a `b15` como botões independentes e o joystick físico é transmitido em `Z/Rx`.
+Na versão atualmente documentada, o firmware apresenta a Nice!Nano como um **USB HID Gamepad** com 17 posições lógicas de botão e quatro eixos HID (`X`, `Y`, `Z` e `Rx`). Os 13 botões físicos são distribuídos nessas posições; o D-Pad utiliza `b12` a `b15` como botões independentes e o joystick físico é transmitido em `Z/Rx`, enquanto `X/Y` permanecem centralizados. O `code.py` utilizado no protótipo realiza calibração automática do centro, usa `DEADZONE = 42`, `SMOOTHING = 0.60`, limites `0..51200` e mantém `INVERT_X = False` e `INVERT_Y = False`.
+
+Os nomes internos dos botões de face no firmware (`SOUTH_X`, `NORTH_B`, `WEST_A`, `EAST_Y`) são mantidos conforme os arquivos efetivamente utilizados. A camada Linux é responsável por apresentar a semântica final validada: `b0=A`, `b1=B`, `b2=Y` e `b3=X`.
 
 O nome de interface configurado pelo firmware é:
 

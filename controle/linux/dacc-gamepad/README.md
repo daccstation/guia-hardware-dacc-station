@@ -40,21 +40,21 @@ O mapper localiza o controle principalmente por **VID/PID**, sem depender de cam
 
 O HID atual expõe 17 botões lógicos e quatro eixos:
 
-| Índice HID | Evento Linux físico | Uso no DACC Station |
-|---|---|---|
-| `b0` | `BTN_SOUTH` (304) | A |
-| `b1` | `BTN_EAST` (305) | B |
-| `b2` | `BTN_C` (306) | Y |
-| `b3` | `BTN_NORTH` (307) | X |
-| `b4` | `BTN_WEST` (308) | L1 |
-| `b5` | `BTN_Z` (309) | R1 |
-| `b8` | `BTN_TL2` (312) | Back / Share |
-| `b9` | `BTN_TR2` (313) | Start / Options |
-| `b12` | `BTN_MODE` (316) | D-Pad Up |
-| `b13` | `BTN_THUMBL` (317) | D-Pad Down |
-| `b14` | `BTN_THUMBR` (318) | D-Pad Left |
-| `b15` | código `319` | D-Pad Right |
-| `b16` | `BTN_TRIGGER_HAPPY1` (704) | Home / Guide |
+| Índice HID | Constante no firmware | Evento Linux físico | Uso final no DACC Station |
+|---|---|---|---|
+| `b0` | `SOUTH_X` | `BTN_SOUTH` (304) | A |
+| `b1` | `NORTH_B` | `BTN_EAST` (305) | B |
+| `b2` | `WEST_A` | `BTN_C` (306) | Y |
+| `b3` | `EAST_Y` | `BTN_NORTH` (307) | X |
+| `b4` | `L1` | `BTN_WEST` (308) | L1 |
+| `b5` | `R1` | `BTN_Z` (309) | R1 |
+| `b8` | `SHARE` | `BTN_TL2` (312) | Back / Share |
+| `b9` | `OPTIONS` | `BTN_TR2` (313) | Start / Options |
+| `b12` | `DPAD_UP` | `BTN_MODE` (316) | D-Pad Up |
+| `b13` | `DPAD_DOWN` | `BTN_THUMBL` (317) | D-Pad Down |
+| `b14` | `DPAD_LEFT` | `BTN_THUMBR` (318) | D-Pad Left |
+| `b15` | `DPAD_RIGHT` | código `319` | D-Pad Right |
+| `b16` | `HOME` | `BTN_TRIGGER_HAPPY1` (704) | Home / Guide |
 
 Os índices `b6`, `b7`, `b10` e `b11` existem no descritor, mas não possuem entrada física na versão atual.
 
@@ -67,7 +67,7 @@ ABS_Z   -127..127
 ABS_RX  -127..127
 ```
 
-O joystick físico atual utiliza `ABS_Z` (horizontal) e `ABS_RX` (vertical). `ABS_X`/`ABS_Y` permanecem disponíveis e centralizados.
+O joystick físico atual utiliza `ABS_Z` (horizontal) e `ABS_RX` (vertical). `ABS_X`/`ABS_Y` permanecem disponíveis e centralizados. No `code.py` utilizado no protótipo, `INVERT_X` e `INVERT_Y` estão ambos em `False`; o centro é calibrado automaticamente e a deadzone usada no firmware é `42`.
 
 ## Saída virtual
 

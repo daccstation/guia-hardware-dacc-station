@@ -1,19 +1,19 @@
 # hid_gamepad.py
-# Relatório HID do DACC Station:
-# - 17 posições lógicas de botão (b0..b16)
-# - 4 eixos: X, Y, Z e Rx
+# Classe minima para gamepad com:
+# - 17 botoes declarados
+# - D-Pad como botoes independentes
+# - 4 eixos HID: X, Y, Z, Rx
+# - X/Y centralizados; analogico fisico em Z/Rx
 
 import struct
 
 
 class Gamepad:
-    # Índices lógicos HID / índices observados como b0..b16.
-    # Alguns índices ficam intencionalmente sem entrada física para manter
-    # o layout usado pela camada de compatibilidade Linux.
-    A = 0
-    B = 1
-    Y = 2
-    X = 3
+    # Indices SDL / Godot esperados (b0, b1, ...)
+    SOUTH_X = 0
+    NORTH_B = 1
+    WEST_A = 2
+    EAST_Y = 3
 
     L1 = 4
     R1 = 5
@@ -41,29 +41,33 @@ class Gamepad:
                 "Gamepad HID nao encontrado. Verifique o boot.py e reinicie a placa."
             )
 
-        self.send_state(0, 0, 0, 0, 0)
+        self.send_state(0, 0, 0)
 
-    def send_state(self, button_mask, x, y, z, rx):
-        button_mask &= 0x1FFFF
+    def send_state(self, button_mask, right_x, right_y):
+        # 17 bits de botoes => 3 bytes.
+        button_mask = button_mask & 0x1FFFF
 
-        # 17 bits de botões ocupam 3 bytes; os 7 bits altos do terceiro
-        # byte permanecem em zero. Depois seguem X, Y, Z e Rx como int8.
-        report = bytes((
+        buttons = bytes((
             button_mask & 0xFF,
             (button_mask >> 8) & 0xFF,
             (button_mask >> 16) & 0x01,
-        )) + struct.pack(
-            "<bbbb",
-            self._clamp_axis(x),
-            self._clamp_axis(y),
-            self._clamp_axis(z),
-            self._clamp_axis(rx),
+        ))
+
+        # O host recebe quatro eixos nos usages X, Y, Z, Rx.
+        # No Windows/Chromium isso ocupa os indices 0, 1, 2 e 3.
+        # Left X/Left Y ficam no centro e o analogico fisico controla
+        # axis 2 (Right X) e axis 3 (Right Y).
+        axes = struct.pack(
+            "bbbb",
+            0,
+            0,
+            self._clamp_axis(right_x),
+            self._clamp_axis(right_y),
         )
 
-        self._device.send_report(report)
+        self._device.send_report(buttons + axes)
 
-    @staticmethod
-    def _clamp_axis(value):
+    def _clamp_axis(self, value):
         if value < -127:
             return -127
         if value > 127:

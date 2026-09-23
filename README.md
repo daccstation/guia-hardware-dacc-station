@@ -71,6 +71,19 @@ O controle corresponde ao protótipo funcional desenvolvido para o DACC Station,
 
 Na versão documentada, a comunicação é realizada por **USB HID cabeado**. Os botões são fixados em uma placa com fendas, com jumpers soldados aos seus terminais, enquanto uma placa de ensaio estreita de **25 × 2 pontos** concentra as conexões de GND dos botões e do joystick. A placa com fendas é instalada na carcaça por encaixe **snap-fit**.
 
+O controle do DACC Station utiliza um nice!nano (nRF52840) com firmware
+CircuitPython responsável pela leitura dos botões e joystick e pela
+comunicação USB HID.
+
+Como o dispositivo utiliza um layout HID próprio, o sistema do console
+possui uma camada de compatibilidade baseada em Linux `evdev` e `uinput`.
+Essa camada converte os eventos físicos em um gamepad virtual padronizado,
+denominado `DACC Station Controller`.
+
+Os arquivos e instruções estão disponíveis em:
+
+[`controle/linux/dacc-gamepad/`](controle/linux/dacc-gamepad/)
+
 ## Arquivos de fabricação
 
 Os modelos utilizados para fabricação da carcaça do controle estão disponíveis em:
